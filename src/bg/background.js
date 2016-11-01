@@ -1,6 +1,7 @@
 var token = null;
-// var apiBase = 'http://foo.com:8000';
-var apiBase = 'https://omnibook.co';
+var apiBase;
+apiBase = 'http://foo.com:8000';
+apiBase = 'https://omnibook.co';
 var apiUrl = apiBase + '/entry/';
 var authUrl = apiBase + '/login';
 var notifications = {
@@ -13,51 +14,52 @@ var notifications = {
       chrome.tabs.create({ url: authUrl });
       chrome.notifications.clear('auth');
     }
-  }
-}
-
-function authenticate() {
-  chrome.storage.sync.get('omnitoken', function(data) {
-    token = data.token;
-    console.log('auth token', token)
-    if (!token) {
-      notifyAuth();
-    }
-  });
-}
-
-function notifySaved() {
-  chrome.notifications.create('saved', {
+  },
+  'saveError': {
+    type: 'basic',
+    iconUrl: 'icons/icon48.png',
+    title: 'Save Error',
+    message: 'Something went wrong.'
+  },
+  'saved': {
     type: 'basic',
     iconUrl: 'icons/icon48.png',
     title: 'Tab saved!',
     message: 'Your tab has been saved.'
-  });
+  },
 }
 
-function notifyAuth() {
-  var authNotification = Object.assign({}, notifications.auth);
-  delete authNotification.onClick;
-  chrome.notifications.create('auth', authNotification);
+function notify(key) {
+  var notification = Object.assign({}, notifications[key]);
+  delete notification.onClick;
+  chrome.notifications.create(key, notification);
 }
 
-function getToken() {
+function authenticate() {
   chrome.storage.sync.get('omnitoken', function(data) {
-    console.log('get', data)
-    return data.token;
+    token = data.omnitoken;
+    console.log('auth token', token)
+    if (!token) {
+      notify('auth');
+    }
   });
 }
 
 function saveTab(title, url) {
   chrome.storage.sync.get('omnitoken', function(data) {
+    if (!data.omnitoken) {
+      return notify('auth');
+    }
+
     console.log('get', data.omnitoken)
     var xhr = new XMLHttpRequest();
     xhr.open('POST', apiUrl, true);
 
     xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4) {
-        console.log(xhr.responseText);
-        notifySaved();
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        notify('saved');
+      } else {
+        notify('saveError');
       }
     }
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
