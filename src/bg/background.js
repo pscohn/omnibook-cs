@@ -1,6 +1,7 @@
 var token = null;
-//var apiBase = 'http://foo.com:8000';
-var apiBase = 'https://omnibook.co';
+var apiBase;
+apiBase = 'http://foo.com:8000';
+apiBase = 'https://omnibook.co';
 var apiUrl = apiBase + '/entry/';
 var authUrl = apiBase + '/login';
 var notifications = {
@@ -13,6 +14,12 @@ var notifications = {
       chrome.tabs.create({ url: authUrl });
       chrome.notifications.clear('auth');
     }
+  },
+  'saveError': {
+    type: 'basic',
+    iconUrl: 'icons/icon48.png',
+    title: 'Save Error',
+    message: 'Something went wrong.'
   },
   'saved': {
     type: 'basic',
@@ -49,9 +56,10 @@ function saveTab(title, url) {
     xhr.open('POST', apiUrl, true);
 
     xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4) {
-        console.log(xhr.responseText);
+      if (xhr.readyState === 4 && xhr.status === 200) {
         notify('saved');
+      } else {
+        notify('saveError');
       }
     }
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
