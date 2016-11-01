@@ -1,6 +1,6 @@
 {
   "name": "Omnibook",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "manifest_version": 2,
   "description": "Omnibook",
   "homepage_url": "https://omnibook.co",
@@ -9,7 +9,6 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "default_locale": "en",
   "background": {
     "scripts": [
       "src/bg/background.js"
